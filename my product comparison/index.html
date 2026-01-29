@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Comparison - AI Powered</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #eff6ff 0%, #ffffff 50%, #f5f3ff 100%);
+            min-height: 100vh;
+            color: #1f2937;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-bottom: 1px solid #f3f4f6;
+            padding: 1rem 2rem;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        .header h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .header p {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        /* Main Content */
+        .main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Search Section */
+        .search-section {
+            margin-bottom: 2rem;
+        }
+
+        .search-form {
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3rem;
+            font-size: 1.1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 16px;
+            outline: none;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .search-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            font-size: 1.2rem;
+        }
+
+        .search-btn {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .search-btn:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        }
+
+        .search-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Examples */
+        .examples {
+            margin-top: 1.5rem;
+        }
+
+        .examples p {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 0.75rem;
+        }
+
+        .example-btns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .example-btn {
+            padding: 0.5rem 1rem;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            color: #4b5563;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .example-btn:hover {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #e5e7eb;
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1.5rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .loading p {
+            color: #6b7280;
+        }
+
+        /* Error */
+        .error {
+            text-align: center;
+            padding: 3rem;
+            background: white;
+            border-radius: 16px;
+            border: 2px solid #fecaca;
+        }
+
+        .error-icon {
+            width: 60px;
+            height: 60px;
+            background: #fee2e2;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 1.5rem;
+        }
+
+        .error h3 {
+            color: #dc2626;
+            margin-bottom: 0.5rem;
+        }
+
+        .retry-btn {
+            margin-top: 1rem;
+            padding: 0.75rem 1.5rem;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        /* Results */
+        .results {
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        /* Query Info */
+        .query-info {
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .query-info .label {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .query-info .query {
+            font-weight: 600;
+        }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .badge-blue {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .badge-purple {
+            background: #ede9fe;
+            color: #7c3aed;
+        }
+
+        /* Product Cards */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 2px solid #f3f4f6;
+            transition: all 0.2s;
+        }
+
+        .product-card:hover {
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .product-card.winner {
+            border-color: #4ade80;
+            box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.2);
+        }
+
+        .winner-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: linear-gradient(135deg, #22c55e, #10b981);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .product-image {
+            height: 180px;
+            background: linear-gradient(135deg, #f9fafb, #f3f4f6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .product-image img {
+            max-height: 150px;
+            max-width: 90%;
+            object-fit: contain;
+        }
+
+        .no-image {
+            color: #d1d5db;
+            text-align: center;
+        }
+
+        .product-info {
+            padding: 1.25rem;
+        }
+
+        .product-brand {
+            font-size: 0.75rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .product-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 0.25rem 0 0.75rem;
+        }
+
+        .product-rating {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            margin-bottom: 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .star {
+            color: #fbbf24;
+        }
+
+        .product-price {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2563eb;
+            margin-bottom: 0.25rem;
+        }
+
+        .price-label {
+            font-size: 0.75rem;
+            color: #9ca3af;
+        }
+
+        .product-specs {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #f3f4f6;
+        }
+
+        .spec-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .spec-label {
+            color: #6b7280;
+        }
+
+        .spec-value {
+            font-weight: 500;
+            text-align: right;
+            max-width: 60%;
+        }
+
+        .product-links {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #f3f4f6;
+        }
+
+        .product-links p {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            margin-bottom: 0.5rem;
+        }
+
+        .links-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .link-btn {
+            padding: 0.375rem 0.75rem;
+            background: #f9fafb;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            color: #4b5563;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .link-btn:hover {
+            background: #f3f4f6;
+        }
+
+        /* Comparison Table */
+        .comparison-section {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .section-header {
+            padding: 1rem 1.5rem;
+            background: #f9fafb;
+            border-bottom: 1px solid #f3f4f6;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .comparison-table th {
+            background: #f9fafb;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .comparison-table td {
+            font-size: 0.875rem;
+        }
+
+        .comparison-table td:not(:first-child) {
+            text-align: center;
+        }
+
+        .comparison-table th:not(:first-child) {
+            text-align: center;
+        }
+
+        .better {
+            background: #ecfdf5;
+            color: #047857;
+            font-weight: 600;
+        }
+
+        .check {
+            color: #22c55e;
+            font-size: 1.25rem;
+        }
+
+        .cross {
+            color: #ef4444;
+            font-size: 1.25rem;
+        }
+
+        /* Recommendations */
+        .recommendations {
+            margin-bottom: 2rem;
+        }
+
+        .priority-card {
+            background: linear-gradient(135deg, #8b5cf6, #6366f1);
+            color: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .priority-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .priority-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .priority-label {
+            font-size: 0.875rem;
+            opacity: 0.8;
+        }
+
+        .priority-aspect {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .priority-content {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+
+        .priority-winner {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .priority-reason {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+        /* Aspect Grid */
+        .aspects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            padding: 1.5rem;
+        }
+
+        .aspect-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 1rem;
+            transition: all 0.2s;
+        }
+
+        .aspect-card:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .aspect-card.no-winner {
+            background: #f9fafb;
+            border-color: #f3f4f6;
+        }
+
+        .aspect-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .aspect-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .aspect-icon.price { background: #dcfce7; color: #16a34a; }
+        .aspect-icon.performance { background: #f3e8ff; color: #9333ea; }
+        .aspect-icon.battery { background: #fef9c3; color: #ca8a04; }
+        .aspect-icon.camera { background: #fce7f3; color: #db2777; }
+        .aspect-icon.display { background: #dbeafe; color: #2563eb; }
+        .aspect-icon.default { background: #e0e7ff; color: #4f46e5; }
+
+        .aspect-title {
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        .aspect-winner {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .aspect-winner .check-icon {
+            color: #22c55e;
+        }
+
+        .aspect-reason {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .aspect-details {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            margin-top: 0.5rem;
+        }
+
+        /* Overall Winner */
+        .overall-winner {
+            background: linear-gradient(135deg, #22c55e, #10b981);
+            color: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .overall-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .trophy-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .overall-label {
+            font-size: 0.875rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .overall-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .overall-summary {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1rem;
+            line-height: 1.6;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .empty-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #dbeafe, #ede9fe);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 2rem;
+        }
+
+        .empty-state h2 {
+            font-size: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .empty-state p {
+            color: #6b7280;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        /* Footer */
+        .footer {
+            border-top: 1px solid #f3f4f6;
+            padding: 1.5rem;
+            text-align: center;
+            color: #9ca3af;
+            font-size: 0.875rem;
+            margin-top: 3rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main {
+                padding: 1rem;
+            }
+
+            .search-input {
+                padding-right: 100px;
+            }
+
+            .search-btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+
+            .query-info {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .products-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo-icon">✨</div>
+            <div>
+                <h1>Product Comparison</h1>
+                <p>AI-powered product analysis</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <!-- Search Section -->
+        <section class="search-section">
+            <form class="search-form" id="searchForm">
+                <span class="search-icon">🔍</span>
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    id="searchInput"
+                    placeholder="Compare products... e.g., 'iPhone 15 vs Samsung S24 for photography'"
+                >
+                <button type="submit" class="search-btn" id="searchBtn">Compare</button>
+            </form>
+
+            <div class="examples" id="examples">
+                <p>Try these examples:</p>
+                <div class="example-btns">
+                    <button class="example-btn" data-query="Compare iPhone 15 vs Samsung Galaxy S24">iPhone 15 vs Samsung S24</button>
+                    <button class="example-btn" data-query="Compare Vivo Y73 vs Realme 8 for gaming">Vivo Y73 vs Realme 8 for gaming</button>
+                    <button class="example-btn" data-query="MacBook Pro vs Dell XPS 15 for video editing">MacBook Pro vs Dell XPS 15</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Loading State -->
+        <div class="loading" id="loading" style="display: none;">
+            <div class="spinner"></div>
+            <h3>Comparing Products</h3>
+            <p id="loadingQuery"></p>
+            <p style="margin-top: 1rem; font-size: 0.875rem; color: #9ca3af;">This may take 20-30 seconds...</p>
+        </div>
+
+        <!-- Error State -->
+        <div class="error" id="error" style="display: none;">
+            <div class="error-icon">⚠️</div>
+            <h3>Something went wrong</h3>
+            <p id="errorMessage"></p>
+            <button class="retry-btn" id="retryBtn">Try Again</button>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" id="emptyState">
+            <div class="empty-icon">✨</div>
+            <h2>Compare Any Products</h2>
+            <p>Enter a comparison query like "Compare iPhone 15 vs Samsung S24" or "Which laptop is better for gaming?"</p>
+        </div>
+
+        <!-- Results -->
+        <div class="results" id="results">
+            <!-- Query Info -->
+            <div class="query-info" id="queryInfo">
+                <div>
+                    <span class="label">Comparing</span>
+                    <p class="query" id="displayQuery"></p>
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <span class="badge badge-blue" id="productType"></span>
+                    <span class="badge badge-purple" id="userPreference" style="display: none;"></span>
+                </div>
+            </div>
+
+            <!-- Product Cards -->
+            <div class="products-grid" id="productsGrid"></div>
+
+            <!-- Comparison Table -->
+            <div class="comparison-section" id="comparisonSection">
+                <div class="section-header">📊 Detailed Comparison</div>
+                <table class="comparison-table" id="comparisonTable">
+                    <thead id="tableHead"></thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+
+            <!-- Recommendations -->
+            <div class="recommendations" id="recommendations">
+                <!-- Priority Card -->
+                <div class="priority-card" id="priorityCard" style="display: none;"></div>
+
+                <!-- Aspects -->
+                <div class="comparison-section">
+                    <div class="section-header">🎯 Recommendations by Aspect</div>
+                    <div class="aspects-grid" id="aspectsGrid"></div>
+                </div>
+
+                <!-- Overall Winner -->
+                <div class="overall-winner" id="overallWinner" style="display: none;"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        Powered by AI • Prices in ₹ (INR) from Indian e-commerce sites
+    </footer>
+
+    <script>
+        // API Base URL
+        const API_URL = 'http://localhost:8000';
+
+        // DOM Elements
+        const searchForm = document.getElementById('searchForm');
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const loading = document.getElementById('loading');
+        const loadingQuery = document.getElementById('loadingQuery');
+        const error = document.getElementById('error');
+        const errorMessage = document.getElementById('errorMessage');
+        const retryBtn = document.getElementById('retryBtn');
+        const emptyState = document.getElementById('emptyState');
+        const results = document.getElementById('results');
+        const examples = document.getElementById('examples');
+
+        let lastQuery = '';
+
+        // Example buttons
+        document.querySelectorAll('.example-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const query = btn.dataset.query;
+                searchInput.value = query;
+                handleSearch(query);
+            });
+        });
+
+        // Search form submit
+        searchForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const query = searchInput.value.trim();
+            if (query) {
+                handleSearch(query);
+            }
+        });
+
+        // Retry button
+        retryBtn.addEventListener('click', () => {
+            if (lastQuery) {
+                handleSearch(lastQuery);
+            }
+        });
+
+        // Main search handler
+        async function handleSearch(query) {
+            lastQuery = query;
+            
+            // Show loading
+            showLoading(query);
+            
+            try {
+                const response = await fetch(`${API_URL}/api/compare`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ user_query: query }),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail?.message || errorData.detail || 'Comparison failed');
+                }
+
+                const data = await response.json();
+                displayResults(data);
+                
+            } catch (err) {
+                showError(err.message || 'Failed to compare products. Make sure the backend is running.');
+            }
+        }
+
+        // Show loading state
+        function showLoading(query) {
+            loading.style.display = 'block';
+            loadingQuery.textContent = `"${query}"`;
+            error.style.display = 'none';
+            emptyState.style.display = 'none';
+            results.classList.remove('show');
+            examples.style.display = 'none';
+            searchBtn.disabled = true;
+            searchBtn.textContent = 'Comparing...';
+        }
+
+        // Show error state
+        function showError(message) {
+            loading.style.display = 'none';
+            error.style.display = 'block';
+            errorMessage.textContent = message;
+            emptyState.style.display = 'none';
+            results.classList.remove('show');
+            examples.style.display = 'block';
+            searchBtn.disabled = false;
+            searchBtn.textContent = 'Compare';
+        }
+
+        // Display results
+        function displayResults(data) {
+            loading.style.display = 'none';
+            error.style.display = 'none';
+            emptyState.style.display = 'none';
+            results.classList.add('show');
+            examples.style.display = 'none';
+            searchBtn.disabled = false;
+            searchBtn.textContent = 'Compare';
+
+            // Query info
+            document.getElementById('displayQuery').textContent = data.user_query;
+            document.getElementById('productType').textContent = data.product_type;
+            
+            if (data.user_preferences && data.user_preferences.length > 0) {
+                document.getElementById('userPreference').textContent = `Priority: ${data.user_preferences.join(', ')}`;
+                document.getElementById('userPreference').style.display = 'inline';
+            } else {
+                document.getElementById('userPreference').style.display = 'none';
+            }
+
+            // Render products
+            renderProducts(data.products, data.recommendation_summary);
+
+            // Render comparison table
+            renderComparisonTable(data.comparison_table, data.products);
+
+            // Render recommendations
+            renderRecommendations(data.recommendation_summary, data.user_preferences);
+        }
+
+        // Get best price from URLs
+        function getBestPrice(product) {
+            if (product.urls && product.urls.length > 0) {
+                const prices = product.urls
+                    .filter(u => u.price && u.price.includes('₹'))
+                    .map(u => ({
+                        price: u.price,
+                        numeric: parseFloat(u.price.replace(/[₹,]/g, ''))
+                    }))
+                    .filter(p => !isNaN(p.numeric))
+                    .sort((a, b) => a.numeric - b.numeric);
+                
+                if (prices.length > 0) return prices[0].price;
+            }
+            return product.price || 'Price not available';
+        }
+
+        // Get product image
+        function getImage(product) {
+            if (product.image) return product.image;
+            if (product.urls && product.urls.length > 0) {
+                const withImage = product.urls.find(u => u.image);
+                if (withImage) return withImage.image;
+            }
+            return null;
+        }
+
+        // Get rating
+        function getRating(product) {
+            if (product.urls && product.urls.length > 0) {
+                const withRating = product.urls.find(u => u.rating);
+                if (withRating) return withRating.rating;
+            }
+            return null;
+        }
+
+        // Check if winner
+        function isWinner(product, recommendation) {
+            const winner = recommendation?.overall_recommendation?.winner?.toLowerCase();
+            return winner && product.name.toLowerCase().includes(winner.toLowerCase());
+        }
+
+        // Render products
+        function renderProducts(products, recommendation) {
+            const grid = document.getElementById('productsGrid');
+            grid.innerHTML = products.map(product => {
+                const winner = isWinner(product, recommendation);
+                const image = getImage(product);
+                const rating = getRating(product);
+                const price = getBestPrice(product);
+                const specs = product.specifications || {};
+
+                return `
+                    <div class="product-card ${winner ? 'winner' : ''}">
+                        <div class="product-image">
+                            ${winner ? '<div class="winner-badge">🏆 Winner</div>' : ''}
+                            ${image 
+                                ? `<img src="${image}" alt="${product.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                   <div class="no-image" style="display:none;">📱<br>No image</div>`
+                                : '<div class="no-image">📱<br>No image</div>'
+                            }
+                        </div>
+                        <div class="product-info">
+                            <p class="product-brand">${specs.brand || product.category}</p>
+                            <h3 class="product-name">${product.name}</h3>
+                            
+                            ${rating ? `
+                                <div class="product-rating">
+                                    <span class="star">★</span>
+                                    <span>${rating}</span>
+                                    <span style="color: #9ca3af;">rating</span>
+                                </div>
+                            ` : ''}
+                            
+                            <p class="product-price">${price}</p>
+                            <p class="price-label">Best price found</p>
+                            
+                            <div class="product-specs">
+                                ${specs.processor ? `<div class="spec-row"><span class="spec-label">Processor</span><span class="spec-value">${specs.processor.split(',')[0]}</span></div>` : ''}
+                                ${specs.ram ? `<div class="spec-row"><span class="spec-label">RAM</span><span class="spec-value">${specs.ram}</span></div>` : ''}
+                                ${specs.battery ? `<div class="spec-row"><span class="spec-label">Battery</span><span class="spec-value">${specs.battery}</span></div>` : ''}
+                                ${specs.display_size ? `<div class="spec-row"><span class="spec-label">Display</span><span class="spec-value">${specs.display_size}</span></div>` : ''}
+                            </div>
+                            
+                            ${product.urls && product.urls.length > 0 ? `
+                                <div class="product-links">
+                                    <p>Available at:</p>
+                                    <div class="links-container">
+                                        ${product.urls.slice(0, 3).map(u => `
+                                            <a href="${u.url}" target="_blank" class="link-btn">${u.source || 'View'} ↗</a>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Render comparison table
+        function renderComparisonTable(table, products) {
+            if (!table || !table.rows || table.rows.length === 0) {
+                document.getElementById('comparisonSection').style.display = 'none';
+                return;
+            }
+            document.getElementById('comparisonSection').style.display = 'block';
+
+            // Filter rows
+            const filteredRows = table.rows.filter(row => 
+                !['brand', 'product_name', 'model'].includes(row.key) &&
+                row.values.some(v => v && v !== 'N/A' && v !== '$,')
+            );
+
+            // Header
+            const thead = document.getElementById('tableHead');
+            thead.innerHTML = `
+                <tr>
+                    <th>Specification</th>
+                    ${table.product_names.map(name => `<th>${name}</th>`).join('')}
+                </tr>
+            `;
+
+            // Body
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = filteredRows.map(row => {
+                return `
+                    <tr>
+                        <td>${row.spec}</td>
+                        ${row.values.map((value, idx) => {
+                            const isBetter = checkIfBetter(row.key, value, row.values);
+                            let display = value;
+                            
+                            if (!value || value === 'N/A' || value === '$,') {
+                                display = '—';
+                            } else if (value.toLowerCase() === 'yes') {
+                                display = '<span class="check">✓</span>';
+                            } else if (value.toLowerCase() === 'no') {
+                                display = '<span class="cross">✗</span>';
+                            }
+                            
+                            return `<td class="${isBetter ? 'better' : ''}">${display}${isBetter ? ' ✓' : ''}</td>`;
+                        }).join('')}
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Check if value is better
+        function checkIfBetter(key, value, allValues) {
+            if (allValues.every(v => v === allValues[0])) return false;
+            
+            const extractNum = (str) => {
+                const match = str?.match(/[\d.]+/);
+                return match ? parseFloat(match[0]) : null;
+            };
+
+            const num = extractNum(value);
+            const allNums = allValues.map(extractNum).filter(n => n !== null);
+            
+            if (num === null || allNums.length < 2) return false;
+
+            const lowerBetter = ['weight', 'price'];
+            const higherBetter = ['battery', 'ram', 'storage', 'refresh_rate', 'camera_main'];
+
+            if (lowerBetter.some(k => key.includes(k))) {
+                return num === Math.min(...allNums);
+            }
+            
+            if (higherBetter.some(k => key.includes(k))) {
+                return num === Math.max(...allNums);
+            }
+
+            if (value?.toLowerCase() === 'yes' && allValues.some(v => v?.toLowerCase() === 'no')) {
+                return true;
+            }
+
+            return false;
+        }
+
+        // Get aspect icon
+        function getAspectIcon(aspect) {
+            const icons = {
+                price: '💰',
+                performance: '⚡',
+                battery: '🔋',
+                camera: '📷',
+                display: '📱',
+                storage: '💾'
+            };
+            const key = Object.keys(icons).find(k => aspect.toLowerCase().includes(k));
+            return icons[key] || '⭐';
+        }
+
+        // Get aspect class
+        function getAspectClass(aspect) {
+            const classes = ['price', 'performance', 'battery', 'camera', 'display'];
+            const match = classes.find(c => aspect.toLowerCase().includes(c));
+            return match || 'default';
+        }
+
+        // Render recommendations
+        function renderRecommendations(recommendation, userPreferences) {
+            if (!recommendation) return;
+
+            // Priority card
+            const priorityCard = document.getElementById('priorityCard');
+            if (recommendation.priority_recommendation && userPreferences?.length > 0) {
+                const pr = recommendation.priority_recommendation;
+                priorityCard.innerHTML = `
+                    <div class="priority-header">
+                        <div class="priority-icon">🎯</div>
+                        <div>
+                            <p class="priority-label">Based on your priority</p>
+                            <h3 class="priority-aspect">${pr.aspect?.toUpperCase()}</h3>
+                        </div>
+                    </div>
+                    <div class="priority-content">
+                        <div class="priority-winner">🏆 ${pr.winner}</div>
+                        <p class="priority-reason">${pr.reason}</p>
+                    </div>
+                `;
+                priorityCard.style.display = 'block';
+            } else {
+                priorityCard.style.display = 'none';
+            }
+
+            // Aspects grid
+            const aspectsGrid = document.getElementById('aspectsGrid');
+            const aspects = recommendation.aspect_recommendations || [];
+            aspectsGrid.innerHTML = aspects.map(rec => {
+                const hasWinner = rec.winner && 
+                    !rec.winner.toLowerCase().includes('unable') && 
+                    !rec.winner.toLowerCase().includes('tie');
+                
+                return `
+                    <div class="aspect-card ${hasWinner ? '' : 'no-winner'}">
+                        <div class="aspect-header">
+                            <div class="aspect-icon ${getAspectClass(rec.aspect)}">${getAspectIcon(rec.aspect)}</div>
+                            <h4 class="aspect-title">${rec.aspect}</h4>
+                        </div>
+                        ${hasWinner ? `
+                            <div class="aspect-winner">
+                                <span class="check-icon">✓</span>
+                                ${rec.winner}
+                            </div>
+                            <p class="aspect-reason">${rec.reason}</p>
+                            ${rec.details ? `<p class="aspect-details">${rec.details}</p>` : ''}
+                        ` : `
+                            <p class="aspect-reason">${rec.reason || 'Unable to determine'}</p>
+                        `}
+                    </div>
+                `;
+            }).join('');
+
+            // Overall winner
+            const overallWinner = document.getElementById('overallWinner');
+            if (recommendation.overall_recommendation?.winner) {
+                const ow = recommendation.overall_recommendation;
+                overallWinner.innerHTML = `
+                    <div class="overall-header">
+                        <div class="trophy-icon">🏆</div>
+                        <div>
+                            <p class="overall-label">Overall Winner</p>
+                            <h3 class="overall-name">${ow.winner}</h3>
+                        </div>
+                    </div>
+                    <div class="overall-summary">${ow.summary}</div>
+                `;
+                overallWinner.style.display = 'block';
+            } else {
+                overallWinner.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
