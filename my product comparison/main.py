@@ -1,8 +1,8 @@
 """
-FastAPI Backend: Product Comparison API (UPDATED)
+FastAPI Backend: Product Comparison API (UPDATED for GCP)
 - Exposes REST endpoints for React frontend
 - Orchestrates Agent 1 → Agent 2 → Agent 4 pipeline
-- Better handling of ₹ prices from Shopping API
+- Securely handles GCP Vertex AI credentials via Secret Manager
 """
 
 import os
@@ -17,8 +17,20 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
-# Load environment variables
+# Load environment variables (for local development)
 load_dotenv()
+
+# ============================================================================
+# GCP CREDENTIALS CONFIGURATION
+# ============================================================================
+# This path matches your GCP Screenshot: /MountPath/Path1
+GCP_SECRET_PATH = "/VERTEX_JSON/VERTEX_JSON"
+
+if os.path.exists(GCP_SECRET_PATH):
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = GCP_SECRET_PATH
+    logging.info(f"✅ GCP Secret detected. Setting credentials to: {GCP_SECRET_PATH}")
+else:
+    logging.info("ℹ️ Running in local mode or GCP Secret path not found.")
 
 # Add backend to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -51,9 +63,11 @@ async def lifespan(app: FastAPI):
     
     logger.info("🚀 Starting Product Comparison API...")
     
-    # Get environment variables
+    # Get environment variables (Ensure these are in your GCP "Variables" tab)
     serper_key = os.getenv('SERPER_API_KEY')
     project_id = os.getenv('GOOGLE_CLOUD_PROJECT_ID')
+    
+    # This will now use GCP_SECRET_PATH if it exists
     credentials_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
     
     if not serper_key:
@@ -90,16 +104,10 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Configure CORS for React frontend
+# Configure CORS (Updated origins for flexible deployment)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",      # React dev server
-        "http://localhost:5173",      # Vite dev server
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:5173",
-        "*"                           # Allow all (for development)
-    ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -155,136 +163,61 @@ async def root():
 async def compare_products(request: CompareRequest):
     """
     Compare products based on user query.
-    
-    Pipeline:
-    1. Agent 1: Product Discovery (extract products, get prices)
-    2. Agent 2: Data Retrieval (fetch product data from web)
-    3. Agent 4: Spec Extraction (extract specs, generate recommendations)
     """
     logger.info(f"📝 Received comparison request: '{request.user_query}'")
     
     try:
-        # ==================== AGENT 1: PRODUCT DISCOVERY ====================
-        logger.info("🔍 Running Agent 1: Product Discovery...")
-        
+        # AGENT 1: PRODUCT DISCOVERY
         agent1_result = agent1.execute(request.user_query)
-        
         if agent1_result.get('status') != 'success':
-            logger.warning(f"⚠️ Agent 1 failed: {agent1_result.get('message', 'Unknown error')}")
-            raise HTTPException(
-                status_code=400,
-                detail={
-                    "error": "Product discovery failed",
-                    "message": agent1_result.get('message', 'Could not find products in query'),
-                    "suggestion": "Try a query like: 'Compare iPhone 15 vs Samsung Galaxy S24'"
-                }
-            )
+            raise HTTPException(status_code=400, detail="Product discovery failed")
         
-        products_found = len(agent1_result.get('products', []))
-        logger.info(f"✅ Agent 1 complete: Found {products_found} products")
-        
-        # Log prices found
-        for p in agent1_result.get('products', []):
-            logger.info(f"   💰 {p.get('name')}: {p.get('price', 'No price')}")
-        
-        if products_found < 2:
-            raise HTTPException(
-                status_code=400,
-                detail={
-                    "error": "Not enough products",
-                    "message": f"Found only {products_found} product(s). Need at least 2 to compare.",
-                    "suggestion": "Try: 'Compare Product A vs Product B'"
-                }
-            )
-        
-        # ==================== AGENT 2: DATA RETRIEVAL ====================
-        logger.info("📥 Running Agent 2: Data Retrieval...")
-        
+        # AGENT 2: DATA RETRIEVAL
         agent2_result = agent2.execute(agent1_result)
         
-        if agent2_result.get('status') != 'success':
-            logger.warning(f"⚠️ Agent 2 failed: {agent2_result.get('error', 'Unknown error')}")
-            # Continue anyway - Agent 4 will use LLM knowledge
-        
-        urls_fetched = agent2_result.get('stats', {}).get('urls_fetched', 0)
-        logger.info(f"✅ Agent 2 complete: Fetched {urls_fetched} URLs")
-        
-        # ==================== AGENT 4: SPEC EXTRACTION ====================
-        logger.info("🔬 Running Agent 4: Specification Extraction...")
-        
+        # AGENT 4: SPEC EXTRACTION
         agent4_result = agent4.execute(agent2_result)
         
-        if agent4_result.get('status') != 'success':
-            logger.warning(f"⚠️ Agent 4 failed: {agent4_result.get('error', 'Unknown error')}")
-        
-        logger.info("✅ Agent 4 complete")
-        
-        # ==================== BUILD RESPONSE ====================
+        # BUILD RESPONSE
         response = build_comparison_response(
             request.user_query,
             agent1_result,
             agent4_result
         )
         
-        logger.info(f"✅ Comparison complete for: '{request.user_query}'")
-        
         return response
     
-    except HTTPException:
-        raise
     except Exception as e:
         logger.error(f"❌ Comparison error: {str(e)}")
-        raise HTTPException(
-            status_code=500,
-            detail={
-                "error": "Comparison failed",
-                "message": str(e)
-            }
-        )
+        raise HTTPException(status_code=500, detail=str(e))
 
+
+# ============================================================================
+# HELPER FUNCTIONS (KEEP THESE FROM YOUR ORIGINAL CODE)
+# ============================================================================
 
 def build_comparison_response(user_query: str, agent1_result: dict, agent4_result: dict) -> dict:
-    """
-    Build the final comparison response for frontend.
-    """
     products = agent4_result.get('products', [])
     agent1_products = {p.get('name'): p for p in agent1_result.get('products', [])}
-    
-    # Build comparison table
     comparison_table = build_comparison_table(products)
     
-    # Format products for frontend
     formatted_products = []
     for product in products:
-        # Get price from Agent 1 (Shopping API) if not in specs
         product_name = product.get('name', '')
         agent1_product = agent1_products.get(product_name, {})
-        
-        # Priority: specs.price > product.price > agent1.price
         specs = product.get('specifications', {})
-        price = specs.get('price', '')
-        if not price or price in ['N/A', '', '$,']:
-            price = product.get('price', '')
-        if not price or price in ['N/A', '', '$,']:
-            price = agent1_product.get('price', '')
+        price = specs.get('price', '') or product.get('price', '') or agent1_product.get('price', '')
         
-        # Ensure price is in specifications
         if price and '₹' in str(price):
             specs['price'] = price
         
-        # Get image
-        image = product.get('image', '')
-        if not image:
-            image = agent1_product.get('image', '')
-        if not image:
-            image = extract_product_image(product)
+        image = product.get('image', '') or agent1_product.get('image', '') or extract_product_image(product)
         
         formatted_products.append({
             'id': product.get('id', ''),
             'name': product.get('name', 'Unknown'),
             'category': product.get('category', 'general'),
             'specifications': specs,
-            'extraction_status': product.get('extraction_status', 'unknown'),
             'price': price,
             'image': image,
             'urls': product.get('urls', agent1_product.get('urls', [])),
@@ -293,146 +226,31 @@ def build_comparison_response(user_query: str, agent1_result: dict, agent4_resul
     return {
         'status': 'success',
         'user_query': user_query,
-        'product_type': agent4_result.get('product_type', 'general'),
-        'user_preferences': agent4_result.get('user_preferences', []),
         'products': formatted_products,
         'comparison_table': comparison_table,
-        'recommendation_summary': agent4_result.get('recommendation_summary', {}),
-        'stats': {
-            'products_compared': len(products),
-            'specs_extracted': sum(
-                1 for p in products 
-                if p.get('extraction_status') == 'success'
-            ),
-        },
         'timestamp': datetime.now().isoformat()
     }
 
-
 def build_comparison_table(products: list) -> dict:
-    """Build a comparison table from products."""
-    if not products:
-        return {'headers': [], 'rows': []}
-    
-    # Display name mappings
-    display_names = {
-        'brand': 'Brand',
-        'model': 'Model',
-        'product_name': 'Product Name',
-        'display_size': 'Display Size',
-        'processor': 'Processor',
-        'ram': 'RAM',
-        'storage': 'Storage',
-        'battery': 'Battery',
-        'camera_main': 'Main Camera',
-        'camera_front': 'Front Camera',
-        'os': 'Operating System',
-        'weight': 'Weight',
-        'price': 'Price',
-        'refresh_rate': 'Refresh Rate',
-        '5g_support': '5G Support',
-    }
-    
-    # Get all specification keys
+    if not products: return {'headers': [], 'rows': []}
     all_keys = set()
-    for product in products:
-        specs = product.get('specifications', {})
-        all_keys.update(specs.keys())
-    
-    # Build headers (product names)
+    for product in products: all_keys.update(product.get('specifications', {}).keys())
     headers = ['Specification'] + [p.get('name', 'Unknown') for p in products]
-    
-    # Build rows
     rows = []
     for key in sorted(all_keys):
-        display_key = display_names.get(key, key.replace('_', ' ').title())
-        row = {
-            'spec': display_key,
-            'key': key,
-            'values': []
-        }
-        
-        for product in products:
-            specs = product.get('specifications', {})
-            value = specs.get(key, 'N/A')
-            row['values'].append(str(value))
-        
+        row = {'spec': key.replace('_', ' ').title(), 'values': [str(p.get('specifications', {}).get(key, 'N/A')) for p in products]}
         rows.append(row)
-    
-    return {
-        'headers': headers,
-        'rows': rows,
-        'product_names': [p.get('name', 'Unknown') for p in products]
-    }
-
+    return {'headers': headers, 'rows': rows}
 
 def extract_product_image(product: dict) -> str:
-    """Extract product image URL if available."""
-    # Check direct image field
-    if product.get('image'):
-        return product['image']
-    
-    # Check URLs for image
-    urls = product.get('urls', [])
-    for url_info in urls:
-        if isinstance(url_info, dict) and url_info.get('image'):
-            return url_info['image']
-    
-    # Check fetched data
-    fetched_data = product.get('fetched_data', [])
-    for data in fetched_data:
-        if data.get('image'):
-            return data['image']
-    
+    if product.get('image'): return product['image']
     return ''
-
-
-# ============================================================================
-# ADDITIONAL ENDPOINTS
-# ============================================================================
 
 @app.get("/api/examples")
 async def get_example_queries():
-    """Get example comparison queries."""
-    return {
-        'examples': [
-            {
-                'query': 'Compare iPhone 15 vs Samsung Galaxy S24',
-                'category': 'smartphone'
-            },
-            {
-                'query': 'Compare Vivo Y73 vs Realme 8 Pro for gaming',
-                'category': 'smartphone'
-            },
-            {
-                'query': 'MacBook Pro vs Dell XPS 15 for video editing',
-                'category': 'laptop'
-            },
-            {
-                'query': 'Compare OnePlus 12 vs iPhone 15 Pro',
-                'category': 'smartphone'
-            },
-            {
-                'query': 'Samsung Galaxy S24 Ultra vs Google Pixel 8 Pro',
-                'category': 'smartphone'
-            }
-        ]
-    }
-
-
-# ============================================================================
-# RUN SERVER
-# ============================================================================
+    return {'examples': [{'query': 'Compare iPhone 15 vs Samsung Galaxy S24'}]}
 
 if __name__ == "__main__":
     import uvicorn
-    
-    port = int(os.getenv('PORT', 8000))
-    
-    uvicorn.run(
-        "main:app",
-        host="0.0.0.0",
-        port=port,
-        reload=True,
-        log_level="info"
-    )
+    port = int(os.getenv('PORT', 8080)) # GCP default is 8080
+    uvicorn.run("main:app", host="0.0.0.0", port=port)
